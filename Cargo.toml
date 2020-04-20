@@ -1,0 +1,11 @@
+[workspace]
+members = [
+    "node",
+    "runtime",
+    "modules/primitives",
+    "modules/template"
+]
+
+[profile.release]
+# Substrate runtime requires unwinding.
+panic = "unwind"
