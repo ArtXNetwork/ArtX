@@ -1,5 +1,5 @@
 [package]
-name = "artx"
+name = "skylark"
 version = "0.1.0"
 authors = ["Anonymous"]
 edition = "2018"
@@ -7,7 +7,7 @@ license = "Unlicense"
 build = "build.rs"
 
 [[bin]]
-name = "artx"
+name = "skylark"
 
 [dependencies]
 futures = "0.3.4"
@@ -31,7 +31,7 @@ sc-client = { version = "0.8.0-alpha.6" }
 sc-client-api = { version = "2.0.0-alpha.6" }
 sp-runtime = { version = "2.0.0-alpha.6" }
 sc-basic-authorship = { version = "0.8.0-alpha.6" }
-runtime = { package = "artx-runtime", path = "../runtime" }
+runtime = { package = "skylark-runtime", path = "../runtime" }
 
 module-primitives = { path = "../modules/primitives", default-features = false }
 

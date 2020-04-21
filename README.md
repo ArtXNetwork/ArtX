@@ -1,6 +1,6 @@
-# Artx
+# skylark
 
-Implementation of artx node in Rust.
+Implementation of skylark node in Rust.
 
 ## Build
 

@@ -71,8 +71,8 @@ pub mod opaque {
 
 /// This runtime version.
 pub const VERSION: RuntimeVersion = RuntimeVersion {
-	spec_name: create_runtime_str!("artx"),
-	impl_name: create_runtime_str!("artx"),
+	spec_name: create_runtime_str!("skylark"),
+	impl_name: create_runtime_str!("skylark"),
 	authoring_version: 1,
 	spec_version: 1,
 	impl_version: 1,

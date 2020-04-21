@@ -1,5 +1,5 @@
 [package]
-name = "artx-runtime"
+name = "skylark-runtime"
 version = "0.1.0"
 authors = ["Anonymous"]
 edition = "2018"

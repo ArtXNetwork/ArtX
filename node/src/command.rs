@@ -21,7 +21,7 @@ use sc_cli::SubstrateCli;
 
 impl SubstrateCli for Cli {
 	fn impl_name() -> &'static str {
-		"ArtX Node"
+		"Skylark Node"
 	}
 
 	fn impl_version() -> &'static str {
