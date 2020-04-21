@@ -2,8 +2,9 @@
 members = [
     "node",
     "runtime",
+    "modules/template",
     "modules/primitives",
-    "modules/template"
+    "modules/content-node"
 ]
 
 [profile.release]

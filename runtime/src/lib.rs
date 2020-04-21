@@ -212,6 +212,17 @@ impl template::Trait for Runtime {
 	type Event = Event;
 }
 
+/// Used for skylark
+type ContentHash = [u8; 32];
+type NodeTopic = [u8; 32];
+
+impl module_content_node::Trait for Runtime {
+	type Event = Event;
+	type ContentHash = ContentHash;
+	type NodeType = u32;
+	type NodeTopic = NodeTopic;
+}
+
 construct_runtime!(
 	pub enum Runtime where
 		Block = Block,
@@ -228,6 +239,8 @@ construct_runtime!(
 		Sudo: pallet_sudo::{Module, Call, Config<T>, Storage, Event<T>},
 		// Used for the module template in `./template.rs`
 		TemplateModule: template::{Module, Call, Storage, Event<T>},
+		// Used for skylark
+		ContentNode: module_content_node::{Module, Call, Storage, Event<T>},
 	}
 );
 
