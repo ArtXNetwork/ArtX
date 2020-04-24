@@ -159,15 +159,6 @@ fn testnet_genesis(initial_authorities: Vec<(AccountId, AccountId, GrandpaId, Ba
 		pallet_sudo: Some(SudoConfig { key: root_key.clone() }),
 		pallet_collective_Instance1: Some(Default::default()),
 		pallet_treasury: Some(Default::default()),
-//		pallet_balances: Some(BalancesConfig {
-//			balances: endowed_accounts.iter().cloned().map(|k|(k, 1 << 60)).collect(),
-//		}),
-//		pallet_babe: Some(BabeConfig { authorities: vec![] }),
-//		pallet_grandpa: Some(GrandpaConfig {
-//			authorities: initial_authorities.iter().map(|x| (x.1.clone(), 1)).collect(),
-//		}),
-//		pallet_sudo: Some(SudoConfig {
-//			key: root_key,
-//		}),
+
 	}
 }
