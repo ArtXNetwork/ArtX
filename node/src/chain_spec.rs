@@ -52,7 +52,7 @@ pub fn get_authority_keys_from_seed(seed: &str) -> (AccountId, AccountId, Grandp
 
 pub fn development_config() -> ChainSpec {
 	let mut properties = Map::new();
-	properties.insert("tokenSymbol".into(), "ACA".into());
+	properties.insert("tokenSymbol".into(), "SKY".into());
 	properties.insert("tokenDecimals".into(), 18.into());
 
 	ChainSpec::from_genesis(
@@ -81,7 +81,7 @@ pub fn development_config() -> ChainSpec {
 
 pub fn local_testnet_config() -> ChainSpec {
 	let mut properties = Map::new();
-	properties.insert("tokenSymbol".into(), "ACA".into());
+	properties.insert("tokenSymbol".into(), "SKY".into());
 	properties.insert("tokenDecimals".into(), 18.into());
 
 	ChainSpec::from_genesis(
