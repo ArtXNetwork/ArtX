@@ -4,7 +4,7 @@
 pub mod currency {
     use module_primitives::Balance;
 
-    pub const SKYS: Balance = 1_000_000_000_000_000_000;
+    pub const SKYS: Balance = 1_000_000_000_000_000;
     pub const DOLLARS: Balance = SKYS;
     pub const CENTS: Balance = DOLLARS / 100;
     pub const MILLICENTS: Balance = CENTS / 1_000;
