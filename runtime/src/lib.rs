@@ -46,6 +46,9 @@ pub use frame_support::{
 mod constants;
 pub use constants::{currency::*, time::*};
 
+pub mod impls;
+use impls::ConvertBalance;
+
 /// Importing a template pallet
 pub use template;
 
@@ -365,13 +368,50 @@ impl template::Trait for Runtime {
 
 /// Used for skylark
 type ContentHash = [u8; 32];
-type NodeTopic = [u8; 32];
+type Topic = [u8; 32];
+type TcxType = u64;
 
-impl module_content_node::Trait for Runtime {
+impl module_opus::Trait for Runtime {
 	type Event = Event;
 	type ContentHash = ContentHash;
-	type NodeType = u32;
-	type NodeTopic = NodeTopic;
+	type OpusType = u32;
+	type Topic = Topic;
+}
+
+impl module_interaction::Trait for Runtime {
+	type Event = Event;
+	type LikeId = u64;
+	type CollectId = u64;
+	type ShareId = u64;
+	type GrantId = u64;
+	type ReportId = u64;
+	/// Currency type for this module.
+	type Currency = Balances;
+}
+
+parameter_types! {
+	pub const CuratedGroupCreationFee: u128 = 1_000_000;
+}
+
+impl module_curated_group::Trait for Runtime {
+	type Currency = Balances;
+	type Event = Event;
+	type CuratedGroupId = u64;
+	type ContentHash = ContentHash;
+	type Slash = (); // send the slashed funds to where?.
+	type Reward = (); // rewards are minted from the void
+	type CuratedGroupCreationFee = CuratedGroupCreationFee; // minimum deposit for creating curated group
+}
+
+impl module_tcx::Trait for Runtime {
+	type Currency = Balances;
+	type Event = Event;
+	type TcxId = u64;
+	type TcxType = TcxType;
+	type ActionId = u64;
+	type ListingId = u64;
+	type ChallengeId = u64;
+	type ConvertBalance = ConvertBalance;
 }
 
 construct_runtime!(
@@ -397,7 +437,10 @@ construct_runtime!(
 
 		// Skylark
 		TemplateModule: template::{Module, Call, Storage, Event<T>},
-		ContentNode: module_content_node::{Module, Call, Storage, Event<T>},
+		Opus: module_opus::{Module, Call, Storage, Event<T>},
+		Interaction: module_interaction::{Module, Call, Storage, Event<T>},
+		Tcx: module_tcx::{Module, Call, Storage, Event<T>},
+		CuratedGroup: module_curated_group::{Module, Call, Storage, Event<T>},
 	}
 );
 

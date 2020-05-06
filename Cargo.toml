@@ -2,9 +2,13 @@
 members = [
     "node",
     "runtime",
-    "modules/template",
     "modules/primitives",
-    "modules/content-node"
+    "modules/governance",
+    "modules/template",
+    "modules/opus",
+    "modules/interaction",
+    "modules/curated-group",
+    "modules/tcx"
 ]
 
 [profile.release]

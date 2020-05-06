@@ -2426,7 +2426,51 @@ dependencies = [
 ]
 
 [[package]]
-name = "module-content-node"
+name = "module-curated-group"
+version = "0.1.0"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "pallet-timestamp",
+ "parity-scale-codec",
+ "serde",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "module-governance"
+version = "0.1.0"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "serde",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "module-interaction"
+version = "0.1.0"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "module-opus",
+ "parity-scale-codec",
+ "serde",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "module-opus"
 version = "0.1.0"
 dependencies = [
  "frame-support",
@@ -2447,6 +2491,22 @@ dependencies = [
  "serde",
  "sp-core",
  "sp-runtime",
+]
+
+[[package]]
+name = "module-tcx"
+version = "0.1.0"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "module-curated-group",
+ "pallet-timestamp",
+ "parity-scale-codec",
+ "serde",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
@@ -4835,8 +4895,12 @@ dependencies = [
  "frame-executive",
  "frame-support",
  "frame-system",
- "module-content-node",
+ "module-curated-group",
+ "module-governance",
+ "module-interaction",
+ "module-opus",
  "module-primitives",
+ "module-tcx",
  "module-template",
  "pallet-babe",
  "pallet-balances",
