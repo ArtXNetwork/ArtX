@@ -13,6 +13,7 @@ use sc_service::ChainType;
 use serde_json::map::Map;
 use sp_runtime::traits::{Verify, IdentifyAccount};
 use sp_runtime::Perbill;
+use pallet_staking::Forcing;
 
 // Note this is the URL for the telemetry server
 //const STAGING_TELEMETRY_URL: &str = "wss://telemetry.polkadot.io/submit/";
@@ -151,6 +152,7 @@ fn testnet_genesis(initial_authorities: Vec<(AccountId, AccountId, GrandpaId, Ba
 				.map(|x| (x.0.clone(), x.1.clone(), INITIAL_STAKING, StakerStatus::Validator))
 				.collect(),
 			invulnerables: initial_authorities.iter().map(|x| x.0.clone()).collect(),
+			force_era: Forcing:: ForceNone,
 			slash_reward_fraction: Perbill::from_percent(10),
 			..Default::default()
 		}),

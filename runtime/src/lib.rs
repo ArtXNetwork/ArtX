@@ -40,7 +40,10 @@ pub use pallet_staking::StakerStatus;
 pub use frame_support::{
 	StorageValue, construct_runtime, parameter_types,
 	traits::{Contains, Randomness},
-	weights::Weight,
+	weights::{
+		Weight,
+		constants::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight, WEIGHT_PER_SECOND},
+	},
 };
 
 mod constants;
@@ -83,6 +86,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	authoring_version: 1,
 	spec_version: 1,
 	impl_version: 1,
+	transaction_version: 1,
 	apis: RUNTIME_API_VERSIONS,
 };
 
@@ -97,7 +101,7 @@ pub fn native_version() -> NativeVersion {
 
 parameter_types! {
 	pub const BlockHashCount: BlockNumber = 250;
-	pub const MaximumBlockWeight: Weight = 1_000_000_000;
+	pub const MaximumBlockWeight: Weight = 2 * WEIGHT_PER_SECOND;
 	pub const AvailableBlockRatio: Perbill = Perbill::from_percent(75);
 	pub const MaximumBlockLength: u32 = 5 * 1024 * 1024;
 	pub const Version: RuntimeVersion = VERSION;
@@ -132,6 +136,14 @@ impl frame_system::Trait for Runtime {
 	type MaximumBlockLength = MaximumBlockLength;
 	/// Portion of the block weight that is available to all normal transactions.
 	type AvailableBlockRatio = AvailableBlockRatio;
+	/// The weight of the overhead invoked on the block import process, independent of the
+	/// extrinsics included in that block.
+	type BlockExecutionWeight = BlockExecutionWeight;
+	/// The weight of database operations that the runtime can invoke.
+	type DbWeight = RocksDbWeight;
+	/// The base weight of any extrinsic processed by the runtime, independent of the
+	/// logic of that extrinsic. (Signature verification, nonce increment, fee, etc...)
+	type ExtrinsicBaseWeight = ExtrinsicBaseWeight;
 	/// Version of the runtime.
 	type Version = Version;
 	/// Converts a module to the index of the module in `construct_runtime!`.
@@ -198,14 +210,12 @@ impl pallet_balances::Trait for Runtime {
 }
 
 parameter_types! {
-	pub const TransactionBaseFee: Balance = 0;
 	pub const TransactionByteFee: Balance = 1;
 }
 
 impl pallet_transaction_payment::Trait for Runtime {
 	type Currency = pallet_balances::Module<Runtime>;
 	type OnTransactionPayment = ();
-	type TransactionBaseFee = TransactionBaseFee;
 	type TransactionByteFee = TransactionByteFee;
 	type WeightToFee = ConvertInto;
 	type FeeMultiplierUpdate = ();
@@ -297,6 +307,7 @@ parameter_types! {
 	// quarter of the last session will be for election.
 	pub const ElectionLookahead: BlockNumber = EPOCH_DURATION_IN_BLOCKS / 4;
 	pub const StakingUnsignedPriority: TransactionPriority = TransactionPriority::max_value() / 2;
+	pub const MaxIterations: u32 = 5;
 }
 
 impl pallet_staking::Trait for Runtime {
@@ -318,8 +329,8 @@ impl pallet_staking::Trait for Runtime {
 	type NextNewSession = Session;
 	type ElectionLookahead = ElectionLookahead;
 	type Call = Call;
-	type SubmitTransaction = TransactionSubmitterOf<()>;
 	type UnsignedPriority = StakingUnsignedPriority;
+	type MaxIterations = MaxIterations;
 }
 
 pub struct CouncilProvider;

@@ -4,7 +4,7 @@ use frame_support::{
     decl_module, decl_storage, decl_event, StorageValue, StorageMap, Parameter, ensure,
     dispatch::{DispatchResult, DispatchError},
     traits::{Currency, ReservableCurrency, ExistenceRequirement},
-    weights::SimpleDispatchInfo,
+    weights::{Weight, DispatchClass},
 };
 use sp_runtime::traits::{
     Member, AtLeast32Bit, Bounded, CheckedAdd, CheckedMul, One,
@@ -104,7 +104,7 @@ decl_module! {
     // this is needed only if you are using events in your module
     fn deposit_event() = default;
 
-    #[weight = SimpleDispatchInfo::default()]
+    #[weight = 100_000]
     pub fn like(origin, to: <T as opus::Trait>::OpusId) -> Result<(), DispatchError> {
       let sender = ensure_signed(origin)?;
       <opus::Module<T>>::owner_of(to).ok_or("Opus does not exist")?;
@@ -113,7 +113,7 @@ decl_module! {
       Self::do_like(sender.clone(), to)
     }
 
-    #[weight = SimpleDispatchInfo::default()]
+    #[weight = 100_000]
     pub fn collect(origin, to: <T as opus::Trait>::OpusId) -> Result<(), DispatchError> {
       let sender = ensure_signed(origin)?;
       let opus_owner = match <opus::Module<T>>::owner_of(to) {
@@ -127,7 +127,7 @@ decl_module! {
       Self::do_collect(sender.clone(), opus_owner, to)
     }
 
-    #[weight = SimpleDispatchInfo::default()]
+    #[weight = 100_000]
     pub fn grant(origin, to: <T as opus::Trait>::OpusId, amount: BalanceOf<T>) -> Result<(), DispatchError> {
       let sender = ensure_signed(origin)?;
       let opus_owner = match <opus::Module<T>>::owner_of(to) {
@@ -141,7 +141,7 @@ decl_module! {
       Self::do_grant(sender.clone(), opus_owner, to, amount)
     }
 
-    #[weight = SimpleDispatchInfo::default()]
+    #[weight = 100_000]
     pub fn report(origin, target: <T as opus::Trait>::OpusId, reason: <T as opus::Trait>::OpusId) -> Result<(), DispatchError> {
       let sender = ensure_signed(origin)?;
       // <opus::Module<T>>::owner_of(target).ok_or("Content Opus does not exist")?;
