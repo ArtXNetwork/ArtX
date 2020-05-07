@@ -30,69 +30,69 @@ pub type BalanceOf<T> = <<T as Trait>::Currency as Currency<<T as system::Trait>
 
 #[cfg_attr(feature ="std", derive(Debug))]
 #[derive(Encode, Decode, Default, Clone, PartialEq)]
-pub struct Like<AccountId, ContentHash> {
+pub struct Like<AccountId, OpusId> {
     pub from: AccountId,
-    pub to: ContentHash,
+    pub to: OpusId,
 }
 
 #[cfg_attr(feature ="std", derive(Debug))]
 #[derive(Encode, Decode, Default, Clone, PartialEq)]
-pub struct Collect<AccountId, ContentHash> {
+pub struct Collect<AccountId, OpusId> {
     pub from: AccountId,
-    pub to: ContentHash,
+    pub to: OpusId,
 }
 
 #[cfg_attr(feature ="std", derive(Debug))]
 #[derive(Encode, Decode, Default, Clone, PartialEq)]
-pub struct Share<AccountId, ContentHash> {
+pub struct Share<AccountId, OpusId> {
     pub from: AccountId,
-    pub to: ContentHash,
+    pub to: OpusId,
 }
 
 #[cfg_attr(feature ="std", derive(Debug))]
 #[derive(Encode, Decode, Default, Clone, PartialEq)]
-pub struct Grant<AccountId, ContentHash, Balance> {
+pub struct Grant<AccountId, OpusId, Balance> {
     pub from: AccountId,
-    pub to: ContentHash,
+    pub to: OpusId,
     pub amount: Balance,
 }
 
 #[cfg_attr(feature ="std", derive(Debug))]
 #[derive(Encode, Decode, Default, Clone, PartialEq)]
-pub struct Report<ContentHash, AccountId> {
+pub struct Report<OpusId, AccountId> {
     pub from: AccountId,
-    pub target: ContentHash,
-    pub reason: ContentHash,
+    pub target: OpusId,
+    pub reason: OpusId,
 }
 
 // This module's storage items.
 decl_storage! {
   trait Store for Module<T: Trait> as Interaction {
-    pub Likes get(fn likes): map hasher(blake2_128_concat) T::LikeId => Option<Like<T::AccountId, <T as opus::Trait>::ContentHash>>;
+    pub Likes get(fn likes): map hasher(blake2_128_concat) T::LikeId => Option<Like<T::AccountId, <T as opus::Trait>::OpusId>>;
     pub NextLikeId get(fn next_like_id): T::LikeId;
 
-    pub Collects get(fn collects): map hasher(blake2_128_concat) T::CollectId => Option<Collect<T::AccountId, <T as opus::Trait>::ContentHash>>;
+    pub Collects get(fn collects): map hasher(blake2_128_concat) T::CollectId => Option<Collect<T::AccountId, <T as opus::Trait>::OpusId>>;
     pub NextCollectId get(fn next_collect_id): T::CollectId;
 
-    pub Grants get(fn grants): map hasher(blake2_128_concat) T::GrantId => Option<Grant<T::AccountId, <T as opus::Trait>::ContentHash, BalanceOf<T>>>;
+    pub Grants get(fn grants): map hasher(blake2_128_concat) T::GrantId => Option<Grant<T::AccountId, <T as opus::Trait>::OpusId, BalanceOf<T>>>;
     pub NextGrantId get(fn next_grant_id): T::GrantId;
 
-    pub Reports get(fn reports): map hasher(blake2_128_concat) T::ReportId => Option<Report<<T as opus::Trait>::ContentHash, T::AccountId>>;
+    pub Reports get(fn reports): map hasher(blake2_128_concat) T::ReportId => Option<Report<<T as opus::Trait>::OpusId, T::AccountId>>;
     pub NextReportId get(fn next_report_id): T::ReportId;
 
     // how many people like this opus
-    pub OpusLikedCount get(fn opus_liked_count): map hasher(blake2_128_concat) <T as opus::Trait>::ContentHash => u64;
+    pub OpusLikedCount get(fn opus_liked_count): map hasher(blake2_128_concat) <T as opus::Trait>::OpusId => u64;
     // how many people collect this opus
-    pub OpusCollectedCount get(fn opus_collected_count): map hasher(blake2_128_concat) <T as opus::Trait>::ContentHash => u64;
+    pub OpusCollectedCount get(fn opus_collected_count): map hasher(blake2_128_concat) <T as opus::Trait>::OpusId => u64;
     // how much money this opus received
-    pub OpusGrantedBalance get(fn opus_granted_balance): map hasher(blake2_128_concat) <T as opus::Trait>::ContentHash => BalanceOf<T>;
+    pub OpusGrantedBalance get(fn opus_granted_balance): map hasher(blake2_128_concat) <T as opus::Trait>::OpusId => BalanceOf<T>;
     // who report this opus
-    pub OpusReportedBy get(fn opus_reported_by): map hasher(blake2_128_concat) <T as opus::Trait>::ContentHash => T::AccountId;
+    pub OpusReportedBy get(fn opus_reported_by): map hasher(blake2_128_concat) <T as opus::Trait>::OpusId => T::AccountId;
 
-    pub LikedOpus get(fn liked_opus): map hasher(blake2_128_concat) (T::AccountId, <T as opus::Trait>::ContentHash) => T::LikeId;
-    pub CollectedOpus get(fn collected_opus): map hasher(blake2_128_concat) (T::AccountId, <T as opus::Trait>::ContentHash) => T::CollectId;
-    pub GrantedOpus get(fn granted_opus): map hasher(blake2_128_concat) (T::AccountId, <T as opus::Trait>::ContentHash) => T::GrantId;
-    pub ReportedOpus get(fn reported_opus): map hasher(blake2_128_concat) (T::AccountId, <T as opus::Trait>::ContentHash) => T::ReportId;
+    pub LikedOpus get(fn liked_opus): map hasher(blake2_128_concat) (T::AccountId, <T as opus::Trait>::OpusId) => T::LikeId;
+    pub CollectedOpus get(fn collected_opus): map hasher(blake2_128_concat) (T::AccountId, <T as opus::Trait>::OpusId) => T::CollectId;
+    pub GrantedOpus get(fn granted_opus): map hasher(blake2_128_concat) (T::AccountId, <T as opus::Trait>::OpusId) => T::GrantId;
+    pub ReportedOpus get(fn reported_opus): map hasher(blake2_128_concat) (T::AccountId, <T as opus::Trait>::OpusId) => T::ReportId;
   }
 }
 
@@ -105,7 +105,7 @@ decl_module! {
     fn deposit_event() = default;
 
     #[weight = SimpleDispatchInfo::default()]
-    pub fn like(origin, to: <T as opus::Trait>::ContentHash) -> Result<(), DispatchError> {
+    pub fn like(origin, to: <T as opus::Trait>::OpusId) -> Result<(), DispatchError> {
       let sender = ensure_signed(origin)?;
       <opus::Module<T>>::owner_of(to).ok_or("Opus does not exist")?;
       ensure!(<LikedOpus<T>>::contains_key((sender.clone(), to)), "Already liked this Opus.");
@@ -114,7 +114,7 @@ decl_module! {
     }
 
     #[weight = SimpleDispatchInfo::default()]
-    pub fn collect(origin, to: <T as opus::Trait>::ContentHash) -> Result<(), DispatchError> {
+    pub fn collect(origin, to: <T as opus::Trait>::OpusId) -> Result<(), DispatchError> {
       let sender = ensure_signed(origin)?;
       let opus_owner = match <opus::Module<T>>::owner_of(to) {
         Some(owner) => owner,
@@ -128,7 +128,7 @@ decl_module! {
     }
 
     #[weight = SimpleDispatchInfo::default()]
-    pub fn grant(origin, to: <T as opus::Trait>::ContentHash, amount: BalanceOf<T>) -> Result<(), DispatchError> {
+    pub fn grant(origin, to: <T as opus::Trait>::OpusId, amount: BalanceOf<T>) -> Result<(), DispatchError> {
       let sender = ensure_signed(origin)?;
       let opus_owner = match <opus::Module<T>>::owner_of(to) {
         Some(owner) => owner,
@@ -142,7 +142,7 @@ decl_module! {
     }
 
     #[weight = SimpleDispatchInfo::default()]
-    pub fn report(origin, target: <T as opus::Trait>::ContentHash, reason: <T as opus::Trait>::ContentHash) -> Result<(), DispatchError> {
+    pub fn report(origin, target: <T as opus::Trait>::OpusId, reason: <T as opus::Trait>::OpusId) -> Result<(), DispatchError> {
       let sender = ensure_signed(origin)?;
       // <opus::Module<T>>::owner_of(target).ok_or("Content Opus does not exist")?;
       let opus_owner = match <opus::Module<T>>::owner_of(target) {
@@ -161,25 +161,25 @@ decl_event!(
   pub enum Event<T>
   where
     AccountId = <T as system::Trait>::AccountId,
-    ContentHash = <T as opus::Trait>::ContentHash,
+    OpusId = <T as opus::Trait>::OpusId,
     Amount = BalanceOf<T>,
     LikeId = <T as Trait>::LikeId,
     CollectId = <T as Trait>::CollectId,
     GrantId = <T as Trait>::GrantId,
     ReportId = <T as Trait>::ReportId,
-    ReasonHash = <T as opus::Trait>::ContentHash,
+    ReasonHash = <T as opus::Trait>::OpusId,
   {
-    Liked(ContentHash, AccountId, LikeId, u64),
-    /// (ContentHash, sender, receiver, CollectId, collected_count)
-    Collected(ContentHash, AccountId, AccountId, CollectId, u64),
-    /// (ContentHash, sender, receiver, GrantedAmount, GrantId, OpusGrantedBalance)
-    Granted(ContentHash, AccountId, AccountId, Amount, GrantId, Amount),
-    Reported(ContentHash, AccountId, ReasonHash, ReportId),
+    Liked(OpusId, AccountId, LikeId, u64),
+    /// (OpusId, sender, receiver, CollectId, collected_count)
+    Collected(OpusId, AccountId, AccountId, CollectId, u64),
+    /// (OpusId, sender, receiver, GrantedAmount, GrantId, OpusGrantedBalance)
+    Granted(OpusId, AccountId, AccountId, Amount, GrantId, Amount),
+    Reported(OpusId, AccountId, ReasonHash, ReportId),
   }
 );
 
 impl<T: Trait> Module<T> {
-    pub fn do_like(sender: T::AccountId, to: <T as opus::Trait>::ContentHash) -> DispatchResult {
+    pub fn do_like(sender: T::AccountId, to: <T as opus::Trait>::OpusId) -> DispatchResult {
         let new_like = Like {
             from: sender.clone(),
             to: to,
@@ -201,7 +201,7 @@ impl<T: Trait> Module<T> {
         Ok(())
     }
     pub fn do_collect(sender: T::AccountId, opus_owner: T::AccountId,
-                     to: <T as opus::Trait>::ContentHash) -> DispatchResult {
+                     to: <T as opus::Trait>::OpusId) -> DispatchResult {
         // new collect
         let new_collect = Collect {
             from: sender.clone(),
@@ -225,7 +225,7 @@ impl<T: Trait> Module<T> {
     }
 
     pub fn do_grant(sender: T::AccountId, opus_owner: T::AccountId,
-                    to: <T as opus::Trait>::ContentHash, amount: BalanceOf<T>) -> DispatchResult {
+                    to: <T as opus::Trait>::OpusId, amount: BalanceOf<T>) -> DispatchResult {
         // new grant
         let new_grant = Grant {
             from: sender.clone(),
@@ -252,7 +252,7 @@ impl<T: Trait> Module<T> {
         Ok(())
     }
 
-    pub fn do_report(sender: T::AccountId, target: <T as opus::Trait>::ContentHash, reason: <T as opus::Trait>::ContentHash) -> DispatchResult {
+    pub fn do_report(sender: T::AccountId, target: <T as opus::Trait>::OpusId, reason: <T as opus::Trait>::OpusId) -> DispatchResult {
         // new report
         let new_report = Report {
             from: sender.clone(),

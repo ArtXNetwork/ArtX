@@ -2500,6 +2500,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "module-curated-group",
+ "module-opus",
  "pallet-timestamp",
  "parity-scale-codec",
  "serde",

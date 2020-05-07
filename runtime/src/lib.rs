@@ -373,7 +373,7 @@ type TcxType = u64;
 
 impl module_opus::Trait for Runtime {
 	type Event = Event;
-	type ContentHash = ContentHash;
+	type OpusId = ContentHash;
 	type OpusType = u32;
 	type Topic = Topic;
 }

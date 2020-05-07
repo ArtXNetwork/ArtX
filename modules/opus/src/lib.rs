@@ -14,33 +14,32 @@ use sp_std::prelude::*;
 pub trait Trait: system::Trait {
     /// The overarching event type.
     type Event: From<Event<Self>> + Into<<Self as system::Trait>::Event>;
-    type ContentHash: Parameter + Member + Default + Copy;
+    type OpusId: Parameter + Member + Default + Copy;
     type OpusType: Parameter + Member + Default + Copy;
     type Topic: Parameter + Member + Default + Copy;
 }
 
 #[cfg_attr(feature ="std", derive(Debug))]
 #[derive(Encode, Decode, Default, Clone, PartialEq)]
-pub struct Opus<ContentHash, OpusType, Topic> {
-    pub id: ContentHash,
+pub struct Opus<OpusId, OpusType, Topic> {
     pub opus_type: OpusType,
     pub topic: Topic,
-    pub sources: Vec<ContentHash>
+    pub sources: Vec<OpusId>
 }
 
 // This module's storage items.
 decl_storage! {
   trait Store for Module<T: Trait> as Opus {
-    Opuses get(fn opuses): map hasher(blake2_128_concat) T::ContentHash => Option<Opus<T::ContentHash, T::OpusType, T::Topic>>;
-    OpusOwner get(fn owner_of): map hasher(blake2_128_concat) T::ContentHash => Option<T::AccountId>;
+    Opuses get(fn opuses): map hasher(blake2_128_concat) T::OpusId => Option<Opus<T::OpusId, T::OpusType, T::Topic>>;
+    OpusOwner get(fn owner_of): map hasher(blake2_128_concat) T::OpusId => Option<T::AccountId>;
 
-    IndexOpus get(fn opus_by_index): map hasher(blake2_128_concat) u64 => T::ContentHash;
+    IndexOpus get(fn opus_by_index): map hasher(blake2_128_concat) u64 => T::OpusId;
     OpusCount get(fn opus_count): u64;
-    OpusIndex: map hasher(blake2_128_concat) T::ContentHash => u64;
+    OpusIndex: map hasher(blake2_128_concat) T::OpusId => u64;
 
-    OwnedIndexOpus get(fn owned_opus_by_index): map hasher(blake2_128_concat) (T::AccountId, u64) => T::ContentHash;
+    OwnedIndexOpus get(fn owned_opus_by_index): map hasher(blake2_128_concat) (T::AccountId, u64) => T::OpusId;
     OwnedOpusCount get(fn owned_opus_count): map hasher(blake2_128_concat) T::AccountId => u64;
-    OwnedOpusIndex: map hasher(blake2_128_concat) T::ContentHash => u64;
+    OwnedOpusIndex: map hasher(blake2_128_concat) T::OpusId => u64;
   }
 }
 
@@ -52,14 +51,13 @@ decl_module! {
     fn deposit_event() = default;
 
     #[weight = SimpleDispatchInfo::default()]
-    pub fn create(origin, content_hash: T::ContentHash, opus_type: T::OpusType, topic: T::Topic, sources: Vec<T::ContentHash>) -> DispatchResult {
+    pub fn create(origin, opus_id: T::OpusId, opus_type: T::OpusType, topic: T::Topic, sources: Vec<T::OpusId>) -> DispatchResult {
       let sender = ensure_signed(origin)?;
 
-      ensure!(!<OpusOwner<T>>::contains_key(content_hash), "Opus already exists");
+      ensure!(!<OpusOwner<T>>::contains_key(opus_id), "Opus already exists");
       ensure!(sources.len() <= 10, "Cannot link more than 10 sources");
 
       let new_opus = Opus {
-          id: content_hash,
           opus_type,
           topic,
           sources: sources.clone(),
@@ -69,27 +67,27 @@ decl_module! {
 
       let new_owned_opus_count = Self::owned_opus_count(sender.clone()) + 1;
 
-      <Opuses<T>>::insert(content_hash, new_opus);
-      <OpusOwner<T>>::insert(content_hash, sender.clone());
+      <Opuses<T>>::insert(opus_id, new_opus);
+      <OpusOwner<T>>::insert(opus_id, sender.clone());
 
-      <IndexOpus<T>>::insert(new_opus_count, content_hash);
+      <IndexOpus<T>>::insert(new_opus_count, opus_id);
       OpusCount::put(new_opus_count);
-      <OpusIndex<T>>::insert(content_hash, new_opus_count);
+      <OpusIndex<T>>::insert(opus_id, new_opus_count);
 
-      <OwnedIndexOpus<T>>::insert((sender.clone(), new_owned_opus_count), content_hash);
+      <OwnedIndexOpus<T>>::insert((sender.clone(), new_owned_opus_count), opus_id);
       <OwnedOpusCount<T>>::insert(sender.clone(), new_owned_opus_count);
-      <OwnedOpusIndex<T>>::insert(content_hash, new_owned_opus_count);
+      <OwnedOpusIndex<T>>::insert(opus_id, new_owned_opus_count);
 
-      Self::deposit_event(RawEvent::Created(sender, content_hash, opus_type, topic, sources));
+      Self::deposit_event(RawEvent::Created(sender, opus_id, opus_type, topic, sources));
 
       Ok(())
     }
 
     #[weight = SimpleDispatchInfo::default()]
-    pub fn transfer(origin, to: T::AccountId, content_hash: T::ContentHash) -> DispatchResult {
+    pub fn transfer(origin, to: T::AccountId, opus_id: T::OpusId) -> DispatchResult {
       let sender = ensure_signed(origin)?;
 
-      let owner = Self::owner_of(content_hash).ok_or("No opus owner")?;
+      let owner = Self::owner_of(opus_id).ok_or("No opus owner")?;
 
       ensure!(owner == sender.clone(), "Sender does not own the opus");
 
@@ -100,25 +98,25 @@ decl_module! {
         .ok_or("Transfer causes overflow for opus receiver")?;
 
       let new_owned_opus_count_from = owned_opus_count_from.checked_sub(1)
-          .ok_or("Transfer causes underflow for opus sender")?;
+        .ok_or("Transfer causes underflow for opus sender")?;
 
-      let owned_opus_index = <OwnedOpusIndex<T>>::get(content_hash);
+      let owned_opus_index = <OwnedOpusIndex<T>>::get(opus_id);
       if owned_opus_index != new_owned_opus_count_from {
         let last_owned_opus_id = <OwnedIndexOpus<T>>::get((sender.clone(), new_owned_opus_count_from));
         <OwnedIndexOpus<T>>::insert((sender.clone(), owned_opus_index), last_owned_opus_id);
         <OwnedOpusIndex<T>>::insert(last_owned_opus_id, owned_opus_index);
       }
 
-      <OpusOwner<T>>::insert(content_hash, to.clone());
-      <OwnedOpusIndex<T>>::insert(content_hash, owned_opus_count_to);
+      <OpusOwner<T>>::insert(opus_id, to.clone());
+      <OwnedOpusIndex<T>>::insert(opus_id, owned_opus_count_to);
 
       <OwnedIndexOpus<T>>::remove((sender.clone(), new_owned_opus_count_from));
-      <OwnedIndexOpus<T>>::insert((to.clone(), owned_opus_count_to), content_hash);
+      <OwnedIndexOpus<T>>::insert((to.clone(), owned_opus_count_to), opus_id);
 
       <OwnedOpusCount<T>>::insert(sender.clone(), new_owned_opus_count_from);
       <OwnedOpusCount<T>>::insert(to.clone(), new_owned_opus_count_to);
 
-      Self::deposit_event(RawEvent::Transferred(sender, to, content_hash));
+      Self::deposit_event(RawEvent::Transferred(sender, to, opus_id));
 
       Ok(())
     }
@@ -130,12 +128,12 @@ decl_event!(
   pub enum Event<T>
   where
     AccountId = <T as system::Trait>::AccountId,
-    ContentHash = <T as Trait>::ContentHash,
+    OpusId = <T as Trait>::OpusId,
     OpusType = <T as Trait>::OpusType,
     Topic = <T as Trait>::Topic,
-    VecContentHash = Vec<<T as Trait>::ContentHash>,
+    VecOpusId = Vec<<T as Trait>::OpusId>,
   {
-    Created(AccountId, ContentHash, OpusType, Topic, VecContentHash),
-    Transferred(AccountId, AccountId, ContentHash),
+    Created(AccountId, OpusId, OpusType, Topic, VecOpusId),
+    Transferred(AccountId, AccountId, OpusId),
   }
 );

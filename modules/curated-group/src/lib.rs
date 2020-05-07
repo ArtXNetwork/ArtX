@@ -151,7 +151,7 @@ impl<T: Trait> Module<T> {
 
 		// reserve some balance
 		ensure!(balance >= T::CuratedGroupCreationFee::get(), "deposit should more than curated group creation fee.");
-		ensure!(T::Currency::can_reserve(&who, balance), "Balance not enough for creating new GE.");
+		ensure!(T::Currency::can_reserve(&who, balance), "Balance not enough for creating new curated group.");
 		T::Currency::reserve(&who, balance)?;
 
 		let curated_group = CuratedGroup::<BalanceOf<T>, T::Moment, T::ContentHash> {
@@ -198,10 +198,10 @@ impl<T: Trait> Module<T> {
 		ensure!(staked_amount >= amount, "Can not withdraw more than you have staked.");
 		// balance_reserved is the total reserved balance of this account,
 		// it consists of staked and invested balance not only to this CuratedGroupId,
-		// but to other GeIds as well
+		// but to other CuratedGroupIds as well
 		let balance_reserved = T::Currency::reserved_balance(&who);
 		ensure!(balance_reserved >= staked_amount, "Total reserved balance should more than staked balance.");
-		// deduct staked amount in Ge
+		// deduct staked amount
 		let new_staked_amount = staked_amount.checked_sub(&amount).ok_or("Underflow staked amount.")?;
 		let total_staked_amount = Self::total_staked_amount(id);
 		let new_total_staked_amount = total_staked_amount.checked_sub(&amount).ok_or("Underflow total staked amount.")?;
