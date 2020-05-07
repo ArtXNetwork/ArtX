@@ -158,7 +158,7 @@ decl_module! {
       let who = ensure_signed(origin)?;
 
       // check if opus exists
-      ensure!(<opus::Module<T>>::owner_of(opus_id), "Opus does not exists");
+      let opus_owner = <opus::Module<T>>::owner_of(opus_id).ok_or("Opus does not exist");
 
       // only member of curated group can propose
       let curated_group_id = Self::owner_of(tcx_id).ok_or("TCX does not exist / TCX owner does not exist")?;
