@@ -41,7 +41,6 @@ sp-version = { version = "2.0.0-alpha.6", default-features = false }
 
 template = { package = "module-template", path = "../modules/template", default-features = false }
 module-primitives = { path = "../modules/primitives", default-features = false }
-module-governance = { path = "../modules/governance", default-features = false }
 module-opus = { path = "../modules/opus", default-features = false }
 module-interaction = { path = "../modules/interaction", default-features = false }
 module-curated-group = { path = "../modules/curated-group", default-features = false }
@@ -85,7 +84,6 @@ std = [
     "sp-version/std",
     "template/std",
     "module-primitives/std",
-    "module-governance/std",
     "module-opus/std",
     "module-interaction/std",
     "module-curated-group/std",

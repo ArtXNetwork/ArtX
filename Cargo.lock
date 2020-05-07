@@ -2441,20 +2441,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "module-governance"
-version = "0.1.0"
-dependencies = [
- "frame-support",
- "frame-system",
- "parity-scale-codec",
- "serde",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
 name = "module-interaction"
 version = "0.1.0"
 dependencies = [
@@ -4897,7 +4883,6 @@ dependencies = [
  "frame-support",
  "frame-system",
  "module-curated-group",
- "module-governance",
  "module-interaction",
  "module-opus",
  "module-primitives",

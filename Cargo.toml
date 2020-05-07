@@ -3,7 +3,6 @@ members = [
     "node",
     "runtime",
     "modules/primitives",
-    "modules/governance",
     "modules/template",
     "modules/opus",
     "modules/interaction",
