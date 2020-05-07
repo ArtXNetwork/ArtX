@@ -1,4 +1,4 @@
-# skylark
+# Skylark
 
 Implementation of skylark node in Rust.
 
