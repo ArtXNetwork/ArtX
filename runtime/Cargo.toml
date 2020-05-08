@@ -47,7 +47,7 @@ module-curated-group = { path = "../modules/curated-group", default-features = f
 module-tcx = { path = "../modules/tcx", default-features = false }
 
 [build-dependencies]
-wasm-builder-runner = { version = "1.0.5", package = "substrate-wasm-builder-runner" }
+wasm-builder-runner = { package = "substrate-wasm-builder-runner", version = "1.0.6" }
 
 [features]
 default = ["std"]
