@@ -11,7 +11,7 @@ use sc_executor::native_executor_instance;
 pub use sc_executor::NativeExecutor;
 use sc_consensus_babe;
 use sc_finality_grandpa::{
-	self, FinalityProofProvider as GrandpaFinalityProofProvider, SharedVoterState, StorageAndProofProvider
+	FinalityProofProvider as GrandpaFinalityProofProvider, StorageAndProofProvider, SharedVoterState
 };
 
 // Our native executor instance.
@@ -28,6 +28,7 @@ native_executor_instance!(
 macro_rules! new_full_start {
 	($config:expr) => {{
 		use std::sync::Arc;
+
 		let mut import_setup = None;
 		let inherent_data_providers = sp_inherents::InherentDataProviders::new();
 
@@ -41,12 +42,22 @@ macro_rules! new_full_start {
 				let pool_api = sc_transaction_pool::FullChainApi::new(client.clone());
 				Ok(sc_transaction_pool::BasicPool::new(config, std::sync::Arc::new(pool_api), prometheus_registry))
 			})?
-			.with_import_queue(|_config, client, mut select_chain, _transaction_pool, spawn_task_handle| {
+			.with_import_queue(|
+				_config,
+				client,
+				mut select_chain,
+				_transaction_pool,
+				spawn_task_handle,
+				registry,
+			| {
 				let select_chain = select_chain.take()
 					.ok_or_else(|| sc_service::Error::SelectChainRequired)?;
 
-				let (grandpa_block_import, grandpa_link) =
-					sc_finality_grandpa::block_import(client.clone(), &(client.clone() as Arc<_>), select_chain)?;
+				let (grandpa_block_import, grandpa_link) = sc_finality_grandpa::block_import(
+					client.clone(),
+					&(client.clone() as Arc<_>),
+					select_chain,
+				)?;
 
 				let justification_import = grandpa_block_import.clone();
 
@@ -64,6 +75,7 @@ macro_rules! new_full_start {
 					client,
 					inherent_data_providers.clone(),
 					spawn_task_handle,
+					registry,
 				)?;
 
 				import_setup = Some((block_import, grandpa_link, babe_link));
@@ -76,9 +88,7 @@ macro_rules! new_full_start {
 }
 
 /// Builds a new service for a full client.
-pub fn new_full(config: Configuration)
-	-> Result<impl AbstractService, ServiceError>
-{
+pub fn new_full(config: Configuration) -> Result<impl AbstractService, ServiceError> {
 	let role = config.role.clone();
 	let force_authoring = config.force_authoring;
 	let name = config.network.node_name.clone();
@@ -186,9 +196,7 @@ pub fn new_full(config: Configuration)
 }
 
 /// Builds a new service for a light client.
-pub fn new_light(config: Configuration)
-	-> Result<impl AbstractService, ServiceError>
-{
+pub fn new_light(config: Configuration) -> Result<impl AbstractService, ServiceError> {
 	let inherent_data_providers = InherentDataProviders::new();
 
 	ServiceBuilder::new_light::<Block, RuntimeApi, Executor>(config)?
@@ -205,7 +213,16 @@ pub fn new_light(config: Configuration)
 			);
 			Ok(pool)
 		})?
-		.with_import_queue_and_fprb(|_config, client, backend, fetcher, _select_chain, _tx_pool, spawn_task_handle| {
+		.with_import_queue_and_fprb(|
+			_config,
+			client,
+			backend,
+			fetcher,
+			_select_chain,
+			_tx_pool,
+			spawn_task_handle,
+			prometheus_registry,
+		| {
 			let fetch_checker = fetcher
 				.map(|fetcher| fetcher.checker().clone())
 				.ok_or_else(|| "Trying to start light import queue without active fetch checker")?;
@@ -233,6 +250,7 @@ pub fn new_light(config: Configuration)
 				client.clone(),
 				inherent_data_providers.clone(),
 				spawn_task_handle,
+				prometheus_registry,
 			)?;
 
 			Ok((import_queue, finality_proof_request_builder))
