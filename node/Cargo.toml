@@ -15,26 +15,37 @@ log = "0.4.8"
 structopt = "0.3.8"
 parking_lot = "0.10.0"
 
-sc-cli = { version = "0.8.0-alpha.8" }
-sp-core = { version = "2.0.0-alpha.8" }
-sc-executor = { version = "0.8.0-alpha.8" }
-sc-service = { version = "0.8.0-alpha.8" }
-sp-inherents = { version = "2.0.0-alpha.8" }
-sc-transaction-pool = { version = "2.0.0-alpha.8" }
-sp-transaction-pool = { version = "2.0.0-alpha.8" }
-sc-network = { version = "0.8.0-alpha.8" }
-sc-consensus-babe = { version = "0.8.0-alpha.8" }
-sp-consensus-babe = { version = "0.8.0-alpha.8" }
-sp-consensus = { version = "0.8.0-alpha.8" }
-sc-consensus = { version = "0.8.0-alpha.8" }
-sc-finality-grandpa = { version = "0.8.0-alpha.8" }
-sp-finality-grandpa = { version = "2.0.0-alpha.8" }
-sc-client-api = { version = "2.0.0-alpha.8" }
-sp-runtime = { version = "2.0.0-alpha.8" }
-sc-basic-authorship = { version = "0.8.0-alpha.8" }
-runtime = { package = "skylark-runtime", path = "../runtime" }
+# substrate primitives
+sp-consensus-babe = { version = "0.8.0-alpha.8", git = "https://github.com/paritytech/substrate.git", tag = "v0.8.0-alpha.8" }
+sp-finality-grandpa = { version = "2.0.0-alpha.8", git = "https://github.com/paritytech/substrate.git", tag = "v2.0.0-alpha.8" }
+sp-consensus = { version = "0.8.0-alpha.8", git = "https://github.com/paritytech/substrate.git", tag = "v0.8.0-alpha.8" }
+sp-core = { version = "2.0.0-alpha.8", git = "https://github.com/paritytech/substrate.git", tag = "v2.0.0-alpha.8" }
+sp-inherents = { version = "2.0.0-alpha.8", git = "https://github.com/paritytech/substrate.git", tag = "v2.0.0-alpha.8" }
+sp-runtime = { version = "2.0.0-alpha.8", git = "https://github.com/paritytech/substrate.git", tag = "v2.0.0-alpha.8" }
+sp-keyring = { version = "2.0.0-alpha.8", git = "https://github.com/paritytech/substrate.git", tag = "v2.0.0-alpha.8" }
+sp-timestamp = { version = "2.0.0-alpha.8", git = "https://github.com/paritytech/substrate.git", tag = "v2.0.0-alpha.8" }
+sp-transaction-pool = { version = "2.0.0-alpha.8", git = "https://github.com/paritytech/substrate.git", tag = "v2.0.0-alpha.8" }
 
+# substrate client dependencies
+sc-executor = { version = "0.8.0-alpha.8", git = "https://github.com/paritytech/substrate.git", tag = "v0.8.0-alpha.8" }
+sc-service = { version = "0.8.0-alpha.8", git = "https://github.com/paritytech/substrate.git", tag = "v0.8.0-alpha.8" }
+sc-transaction-pool = { version = "2.0.0-alpha.8", git = "https://github.com/paritytech/substrate.git", tag = "v2.0.0-alpha.8" }
+sc-network = { version = "0.8.0-alpha.8", git = "https://github.com/paritytech/substrate.git", tag = "v0.8.0-alpha.8" }
+sc-consensus-babe = { version = "0.8.0-alpha.8", git = "https://github.com/paritytech/substrate.git", tag = "v0.8.0-alpha.8" }
+sc-consensus = { version = "0.8.0-alpha.8", git = "https://github.com/paritytech/substrate.git", tag = "v0.8.0-alpha.8" }
+sc-finality-grandpa = { version = "0.8.0-alpha.8", git = "https://github.com/paritytech/substrate.git", tag = "v0.8.0-alpha.8" }
+sc-client-api = { version = "2.0.0-alpha.8", git = "https://github.com/paritytech/substrate.git", tag = "v2.0.0-alpha.8" }
+sc-basic-authorship = { version = "0.8.0-alpha.8", git = "https://github.com/paritytech/substrate.git", tag = "v0.8.0-alpha.8" }
+sc-rpc = { version = "0.8.0-alpha.8", git = "https://github.com/paritytech/substrate.git", tag = "v0.8.0-alpha.8" }
+sc-cli = { version = "0.8.0-alpha.8", git = "https://github.com/paritytech/substrate.git", tag = "v0.8.0-alpha.8" }
+
+# substrate frame dependencies
+
+
+# skylark node dependencies
+runtime = { package = "skylark-runtime", path = "../runtime" }
 module-primitives = { path = "../modules/primitives", default-features = false }
 
 [build-dependencies]
-substrate-build-script-utils = { version = "2.0.0-alpha.8", package = "substrate-build-script-utils" }
+vergen = "3.0.4"
+substrate-build-script-utils = { version = "2.0.0-alpha.8", git = "https://github.com/paritytech/substrate.git", tag = "v2.0.0-alpha.8" }
