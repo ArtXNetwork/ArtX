@@ -913,6 +913,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "frame-benchmarking-cli"
+version = "2.0.0-alpha.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d6883afdada136802e51273ae7d6ebc03428f564fa8467c76a6d4c20dc5d6c9f"
+dependencies = [
+ "frame-benchmarking",
+ "parity-scale-codec",
+ "sc-cli",
+ "sc-client-db",
+ "sc-executor",
+ "sc-service",
+ "sp-core",
+ "sp-externalities",
+ "sp-runtime",
+ "sp-state-machine",
+ "structopt",
+]
+
+[[package]]
 name = "frame-executive"
 version = "2.0.0-alpha.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2463,6 +2482,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "module-inspect"
+version = "0.1.0"
+dependencies = [
+ "derive_more",
+ "log",
+ "parity-scale-codec",
+ "sc-cli",
+ "sc-client-api",
+ "sc-service",
+ "sp-blockchain",
+ "sp-core",
+ "sp-runtime",
+ "structopt",
+]
+
+[[package]]
 name = "module-interaction"
 version = "0.1.0"
 dependencies = [
@@ -2526,11 +2561,9 @@ dependencies = [
  "frame-support",
  "frame-system",
  "parity-scale-codec",
- "serde",
  "sp-core",
  "sp-io",
  "sp-runtime",
- "sp-std",
 ]
 
 [[package]]
@@ -5147,10 +5180,13 @@ dependencies = [
 name = "skylark"
 version = "0.1.0"
 dependencies = [
+ "frame-benchmarking",
+ "frame-benchmarking-cli",
  "futures 0.3.5",
  "hex-literal",
  "jsonrpc-core",
  "log",
+ "module-inspect",
  "module-primitives",
  "pallet-contracts",
  "pallet-contracts-rpc",
