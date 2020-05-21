@@ -10,7 +10,7 @@ use frame_support::{
 		Currency, LockableCurrency, WithdrawReasons, LockIdentifier, ReservableCurrency,
 	},
 	dispatch::{DispatchResult, DispatchError},
-	weights::SimpleDispatchInfo,
+	weights::{Weight, DispatchClass},
 };
 use frame_system::{self as system, ensure_signed};
 use pallet_timestamp as timestamp;
@@ -126,7 +126,7 @@ decl_module! {
     // this is needed only if you are using events in your module
     fn deposit_event() = default;
 
-    #[weight = SimpleDispatchInfo::default()]
+    #[weight = 100_000]
     pub fn create(origin, curated_group_id: T::CuratedGroupId, tcx_type: T::TcxType, content_hash: T::ContentHash) -> DispatchResult {
 		// TODO: check if curated_group agrees
 		let curated_group = <curated_group::Module<T>>::curated_groups(curated_group_id).ok_or("Curated group does not exist")?;
@@ -151,7 +151,7 @@ decl_module! {
         Ok(())
     }
 
-    #[weight = SimpleDispatchInfo::default()]
+    #[weight = 100_000]
     pub fn propose(origin, tcx_id: T::TcxId, opus_id: <T as opus::Trait>::OpusId, amount: BalanceOf<T>,
     action_id: T::ActionId) -> Result<(), DispatchError> {
 
@@ -210,7 +210,7 @@ decl_module! {
     }
 
     // TODO: opus_id or listing_id; prevent multiple challenge
-    #[weight = SimpleDispatchInfo::default()]
+    #[weight = 100_000]
     pub fn challenge(origin, tcx_id: T::TcxId, opus_id: <T as opus::Trait>::OpusId, amount: BalanceOf<T>) -> Result<(), DispatchError> {
       let who = ensure_signed(origin)?;
 
@@ -283,7 +283,7 @@ decl_module! {
     }
 
     // TODO: prevent double votes, cannot vote on your own challenge?
-    #[weight = SimpleDispatchInfo::default()]
+    #[weight = 100_000]
     pub fn vote(origin, challenge_id: T::ChallengeId, amount: BalanceOf<T>, value: bool) -> Result<(), DispatchError> {
       let who = ensure_signed(origin)?;
 
@@ -353,7 +353,7 @@ decl_module! {
       Ok(())
     }
 
-    #[weight = SimpleDispatchInfo::default()]
+    #[weight = 100_000]
     pub fn resolve(origin, tcx_id: T::TcxId, opus_id: <T as opus::Trait>::OpusId) -> DispatchResult {
       let who = ensure_signed(origin)?;
       ensure!(<TcxListings<T>>::contains_key((tcx_id, opus_id)), "Listing not found");
@@ -430,7 +430,7 @@ decl_module! {
       Ok(())
     }
 
-    #[weight = SimpleDispatchInfo::default()]
+    #[weight = 100_000]
     pub fn claim(origin, challenge_id: T::ChallengeId) -> DispatchResult {
       let who = ensure_signed(origin)?;
 

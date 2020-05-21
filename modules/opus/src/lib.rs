@@ -3,7 +3,7 @@
 use frame_support::{
     decl_module, decl_storage, decl_event, StorageValue, StorageMap, Parameter, ensure,
     dispatch::DispatchResult,
-    weights::SimpleDispatchInfo,
+    weights::{Weight, DispatchClass},
 };
 use sp_runtime::traits::{ Member };
 use frame_system::{self as system, ensure_signed};
@@ -50,7 +50,7 @@ decl_module! {
     // Initializing events.
     fn deposit_event() = default;
 
-    #[weight = SimpleDispatchInfo::default()]
+    #[weight = 100_000]
     pub fn create(origin, opus_id: T::OpusId, opus_type: T::OpusType, topic: T::Topic, sources: Vec<T::OpusId>) -> DispatchResult {
       let sender = ensure_signed(origin)?;
 
@@ -83,7 +83,7 @@ decl_module! {
       Ok(())
     }
 
-    #[weight = SimpleDispatchInfo::default()]
+    #[weight = 100_000]
     pub fn transfer(origin, to: T::AccountId, opus_id: T::OpusId) -> DispatchResult {
       let sender = ensure_signed(origin)?;
 

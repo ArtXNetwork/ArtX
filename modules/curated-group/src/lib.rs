@@ -11,7 +11,7 @@ use frame_support::{
 		OnUnbalanced, Get,
 	},
 	StorageValue, StorageMap, Parameter,
-	weights::SimpleDispatchInfo,
+	weights::{Weight, DispatchClass},
 };
 use sp_runtime::traits::{
 	Member, AtLeast32Bit, Bounded, CheckedAdd, CheckedSub, One,
@@ -63,9 +63,9 @@ pub struct CuratedGroup<Balance, Moment, ContentHash> {
 // This module's storage items.
 decl_storage! {
   trait Store for Module<T: Trait> as CuratedGroup {
-
+	// Create
     CuratedGroups get(fn curated_groups): map hasher(blake2_128_concat) T::CuratedGroupId => Option<CuratedGroup<BalanceOf<T>, T::Moment, T::ContentHash>>;
-	NextCuratedGroupId get(next_curated_group_id): T::CuratedGroupId;
+	NextCuratedGroupId get(fn next_curated_group_id): T::CuratedGroupId;
 
     // Stake
     StakedAmount get(fn staked_amount): map hasher(blake2_128_concat) (T::CuratedGroupId, T::AccountId) => BalanceOf<T>;
@@ -85,14 +85,14 @@ decl_module! {
     fn deposit_event() = default;
 
     /// create curation with rules
-    #[weight = SimpleDispatchInfo::default()]
+    #[weight = 100_000]
     pub fn create(origin, content_hash: T::ContentHash, amount: BalanceOf<T>) -> DispatchResult {
       let who = ensure_signed(origin)?;
       Self::do_create(who.clone(), content_hash, amount)
     }
 
     /// stake
-    #[weight = SimpleDispatchInfo::default()]
+    #[weight = 100_000]
     pub fn stake(origin, id: T::CuratedGroupId, amount: BalanceOf<T>) -> DispatchResult {
       let who = ensure_signed(origin)?;
       ensure!(<CuratedGroups<T>>::contains_key(id), "Curated group does not exist");
@@ -100,7 +100,7 @@ decl_module! {
       Self::do_stake(who.clone(), id, amount)
     }
 
-    #[weight = SimpleDispatchInfo::default()]
+    #[weight = 100_000]
     pub fn withdraw(origin, id: T::CuratedGroupId, amount: BalanceOf<T>) -> DispatchResult {
       let who = ensure_signed(origin)?;
       ensure!(<CuratedGroups<T>>::contains_key(id), "Curated group does not exist");
@@ -108,7 +108,7 @@ decl_module! {
       Self::do_withdraw(who.clone(), id, amount)
     }
 
-    #[weight = SimpleDispatchInfo::default()]
+    #[weight = 100_000]
     pub fn invest(origin, id: T::CuratedGroupId, amount: BalanceOf<T>) -> DispatchResult {
       let who = ensure_signed(origin)?;
       ensure!(<CuratedGroups<T>>::contains_key(id), "Curated group does not exist");
@@ -116,7 +116,7 @@ decl_module! {
       Self::do_invest(who.clone(), id, amount)
     }
 
-    #[weight = SimpleDispatchInfo::default()]
+    #[weight = 100_000]
     pub fn update_rules(origin) -> DispatchResult {
       Ok(())
     }
