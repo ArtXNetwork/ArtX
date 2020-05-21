@@ -1,7 +1,20 @@
 //! Some configurable implementations as associated type for the substrate runtime.
 
-use sp_runtime::traits::{Convert};
+use core::num::NonZeroI128;
+use sp_runtime::{
+	Fixed128, Perquintill,
+	traits::{Convert, Saturating},
+};
 use module_primitives::Balance;
+use frame_support::{traits::{OnUnbalanced, Currency, Get}, weights::Weight};
+use crate::{Balances, System, Authorship, MaximumBlockWeight, NegativeImbalance};
+
+pub struct Author;
+impl OnUnbalanced<NegativeImbalance> for Author {
+	fn on_nonzero_unbalanced(amount: NegativeImbalance) {
+		Balances::resolve_creating(&Authorship::author(), amount);
+	}
+}
 
 /// Struct that handles the conversion of Balance -> `u64`. This is used for staking's election
 /// calculation.

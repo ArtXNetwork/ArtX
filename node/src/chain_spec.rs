@@ -2,25 +2,25 @@ use sc_chain_spec::ChainSpecExtension;
 use sp_core::{Pair, Public, crypto::UncheckedInto, sr25519};
 use serde::{Serialize, Deserialize};
 use runtime::{
-	BabeConfig, BalancesConfig, ContractsConfig, GenesisConfig, GrandpaConfig,
+	BabeConfig, BalancesConfig, ContractsConfig, GrandpaConfig,
 	IndicesConfig, SessionKeys, SessionConfig, StakerStatus, StakingConfig,
 	ElectionsConfig, DemocracyConfig, CouncilConfig, SudoConfig, SystemConfig,
-	TechnicalCommitteeConfig, DOLLARS, WASM_BINARY,
+	TechnicalCommitteeConfig, WASM_BINARY,
 };
+use runtime::Block;
+use runtime::constants::currency::*;
 use sp_consensus_babe::AuthorityId as BabeId;
 use sp_finality_grandpa::{AuthorityId as GrandpaId};
 use sc_service::ChainType;
-use serde_json::map::Map;
 use sp_runtime::{Perbill, traits::{Verify, IdentifyAccount}};
 
-pub use module_primitives::{
-	AccountId, Balance, Signature,
-};
+pub use primitives::{AccountId, Balance, Signature};
+pub use runtime::GenesisConfig;
 
 type AccountPublic = <Signature as Verify>::Signer;
 
 // Note this is the URL for the telemetry server
-//const STAGING_TELEMETRY_URL: &str = "wss://telemetry.polkadot.io/submit/";
+//const TELEMETRY_URL: &str = "wss://telemetry.polkadot.io/submit/";
 
 /// Node `ChainSpec` extensions.
 ///
@@ -36,10 +36,7 @@ pub struct Extensions {
 }
 
 /// Specialized `ChainSpec`.
-pub type ChainSpec = sc_service::GenericChainSpec<
-	GenesisConfig,
-	Extensions,
->;
+pub type ChainSpec = sc_service::GenericChainSpec<GenesisConfig, Extensions>;
 
 fn session_keys(grandpa: GrandpaId, babe: BabeId) -> SessionKeys {
 	SessionKeys { grandpa, babe }
@@ -53,8 +50,16 @@ pub fn get_from_seed<TPublic: Public>(seed: &str) -> <TPublic::Pair as Pair>::Pu
 }
 
 /// Helper function to generate an account ID from seed
-pub fn get_account_id_from_seed<TPublic: Public>(seed: &str) -> AccountId where
-	AccountPublic: From<<TPublic::Pair as Pair>::Public>
+//pub fn get_account_id_from_seed<TPublic: Public>(seed: &str) -> AccountId where
+//	AccountPublic: From<<TPublic::Pair as Pair>::Public>
+//{
+//	AccountPublic::from(get_from_seed::<TPublic>(seed)).into_account()
+//}
+
+/// Helper function to generate an account ID from seed
+pub fn get_account_id_from_seed<TPublic: Public>(seed: &str) -> AccountId
+	where
+		AccountPublic: From<<TPublic::Pair as Pair>::Public>,
 {
 	AccountPublic::from(get_from_seed::<TPublic>(seed)).into_account()
 }
@@ -75,7 +80,12 @@ fn development_config_genesis() -> GenesisConfig {
 			authority_keys_from_seed("Alice"),
 		],
 		get_account_id_from_seed::<sr25519::Public>("Alice"),
-		None,
+		Option::from(vec![
+			get_account_id_from_seed::<sr25519::Public>("Alice"),
+			get_account_id_from_seed::<sr25519::Public>("Bob"),
+			get_account_id_from_seed::<sr25519::Public>("Alice//stash"),
+			get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
+		]),
 		true,
 	)
 }
@@ -85,7 +95,7 @@ pub fn development_config() -> ChainSpec {
 		"Development",
 		"dev",
 		ChainType::Development,
-		development_config_genesis(),
+		development_config_genesis,
 		vec![],
 		None,
 		None,
@@ -101,7 +111,20 @@ fn local_testnet_genesis() -> GenesisConfig {
 			authority_keys_from_seed("Bob"),
 		],
 		get_account_id_from_seed::<sr25519::Public>("Alice"),
-		None,
+		Option::from(vec![
+			get_account_id_from_seed::<sr25519::Public>("Alice"),
+			get_account_id_from_seed::<sr25519::Public>("Bob"),
+			get_account_id_from_seed::<sr25519::Public>("Charlie"),
+			get_account_id_from_seed::<sr25519::Public>("Dave"),
+			get_account_id_from_seed::<sr25519::Public>("Eve"),
+			get_account_id_from_seed::<sr25519::Public>("Ferdie"),
+			get_account_id_from_seed::<sr25519::Public>("Alice//stash"),
+			get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
+			get_account_id_from_seed::<sr25519::Public>("Charlie//stash"),
+			get_account_id_from_seed::<sr25519::Public>("Dave//stash"),
+			get_account_id_from_seed::<sr25519::Public>("Eve//stash"),
+			get_account_id_from_seed::<sr25519::Public>("Ferdie//stash"),
+		]),
 		false,
 	)
 }
@@ -111,7 +134,7 @@ pub fn local_testnet_config() -> ChainSpec {
 		"Local Testnet",
 		"local_testnet",
 		ChainType::Local,
-		local_testnet_config(),
+		local_testnet_genesis,
 		vec![],
 		None,
 		None,
@@ -119,9 +142,6 @@ pub fn local_testnet_config() -> ChainSpec {
 		Default::default(),
 	)
 }
-
-//const INITIAL_BALANCE: u128 = 1_000_000 * DOLLARS;
-//const INITIAL_STAKING: u128 = 100_000 * DOLLARS;
 
 pub fn testnet_genesis(
 	initial_authorities: Vec<(
@@ -209,6 +229,7 @@ pub fn testnet_genesis(
 				.collect(),
 			phantom: Default::default(),
 		}),
+		pallet_membership_Instance1: Some(Default::default()),
 		pallet_treasury: Some(Default::default()),
 		pallet_contracts: Some(ContractsConfig {
 			current_schedule: pallet_contracts::Schedule {
