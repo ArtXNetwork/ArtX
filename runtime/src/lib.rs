@@ -12,7 +12,7 @@ use sp_std::prelude::*;
 use frame_support::{
 	construct_runtime, parameter_types, debug,
 	weights::{
-		Weight,
+		Weight, IdentityFee,
 		constants::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight, WEIGHT_PER_SECOND},
 	},
 	traits::{Currency, Imbalance, KeyOwnerProofSystem, OnUnbalanced, Randomness, LockIdentifier},
@@ -26,14 +26,14 @@ use module_primitives::{AccountIndex, Balance, BlockNumber, Hash, Index, Moment}
 pub use module_primitives::{AccountId, Signature};
 use sp_api::impl_runtime_apis;
 use sp_runtime::{
-	Permill, Perbill, Perquintill, Percent, ApplyExtrinsicResult,
+	Permill, Perbill, Perquintill, Percent, PerThing, ApplyExtrinsicResult,
 	impl_opaque_keys, generic, create_runtime_str, ModuleId,
 };
 use sp_runtime::curve::PiecewiseLinear;
 use sp_runtime::transaction_validity::{TransactionValidity, TransactionSource, TransactionPriority};
 use sp_runtime::traits::{
 	self, BlakeTwo256, Block as BlockT, StaticLookup, SaturatedConversion,
-	OpaqueKeys, NumberFor,
+	ConvertInto, OpaqueKeys, NumberFor, Saturating,
 };
 use sp_version::RuntimeVersion;
 #[cfg(feature = "std")]
@@ -62,7 +62,7 @@ pub use pallet_staking::StakerStatus;
 
 /// Implementations of some helper traits passed into runtime modules as associated types.
 pub mod impls;
-use impls::{CurrencyToVoteHandler, Author, LinearWeightToFee, TargetedFeeAdjustment, ConvertBalance};
+use impls::{CurrencyToVoteHandler, Author, TargetedFeeAdjustment, ConvertBalance};
 
 /// Constant values used within the runtime.
 pub mod constants;
@@ -134,14 +134,20 @@ impl OnUnbalanced<NegativeImbalance> for DealWithFees {
 	}
 }
 
+//const AVERAGE_ON_INITIALIZE_WEIGHT: Perbill = Perbill::from_percent(10);
 parameter_types! {
 	pub const BlockHashCount: BlockNumber = 2400;
 	/// We allow for 2 seconds of compute with a 6 second average block time.
 	pub const MaximumBlockWeight: Weight = 2 * WEIGHT_PER_SECOND;
 	pub const AvailableBlockRatio: Perbill = Perbill::from_percent(75);
+	/// Assume 10% of weight for average on_initialize calls.
+	pub const MaximumExtrinsicWeight: Weight = AvailableBlockRatio::get()
+		.saturating_sub(Perbill::from_percent(10)) * MaximumBlockWeight::get();
 	pub const MaximumBlockLength: u32 = 5 * 1024 * 1024;
 	pub const Version: RuntimeVersion = VERSION;
 }
+
+//const_assert!(AvailableBlockRatio::get().deconstruct() >= AVERAGE_ON_INITIALIZE_WEIGHT.deconstruct());
 
 impl frame_system::Trait for Runtime {
 	/// The ubiquitous origin type.
@@ -176,6 +182,10 @@ impl frame_system::Trait for Runtime {
 	/// The base weight of any extrinsic processed by the runtime, independent of the
 	/// logic of that extrinsic. (Signature verification, nonce increment, fee, etc...)
 	type ExtrinsicBaseWeight = ExtrinsicBaseWeight;
+	/// The maximum weight that a single extrinsic of `Normal` dispatch class can have,
+	/// idependent of the logic of that extrinsics. (Roughly max block weight - average on
+	/// initialize cost).
+	type MaximumExtrinsicWeight = MaximumExtrinsicWeight;
 	/// Maximum size of all encoded transactions (in bytes) that are allowed in one block.
 	type MaximumBlockLength = MaximumBlockLength;
 	/// Portion of the block weight that is available to all normal transactions.
@@ -232,19 +242,23 @@ impl pallet_balances::Trait for Runtime {
 
 parameter_types! {
 	pub const TransactionByteFee: Balance = 10 * MILLICENTS;
-	// In the Substrate node, a weight of 10_000_000 (smallest non-zero weight)
-	// is mapped to 10_000_000 units of fees, hence:
-	pub const WeightFeeCoefficient: Balance = 1;
-	// for a sane configuration, this should always be less than `AvailableBlockRatio`.
-	pub const TargetBlockFullness: Perquintill = Perquintill::from_percent(25);
+//	pub const TargetBlockFullness: Perquintill = Perquintill::from_percent(25);
 }
+
+//// for a sane configuration, this should always be less than `AvailableBlockRatio`.
+//const_assert!(
+//	TargetBlockFullness::get().deconstruct() <
+//	(AvailableBlockRatio::get().deconstruct() as <Perquintill as PerThing>::Inner)
+//		* (<Perquintill as PerThing>::ACCURACY / <Perbill as PerThing>::ACCURACY as <Perquintill as PerThing>::Inner)
+//);
 
 impl pallet_transaction_payment::Trait for Runtime {
 	type Currency = Balances;
 	type OnTransactionPayment = DealWithFees;
 	type TransactionByteFee = TransactionByteFee;
-	type WeightToFee = LinearWeightToFee<WeightFeeCoefficient>;
-	type FeeMultiplierUpdate = TargetedFeeAdjustment<TargetBlockFullness>;
+	type WeightToFee = IdentityFee<Balance>;
+//	type FeeMultiplierUpdate = TargetedFeeAdjustment<TargetBlockFullness>;
+	type FeeMultiplierUpdate = ();
 }
 
 parameter_types! {
@@ -349,10 +363,15 @@ impl pallet_staking::Trait for Runtime {
 	type UnsignedPriority = StakingUnsignedPriority;
 }
 
+parameter_types! {
+	pub const OffencesWeightSoftLimit: Weight = Perbill::from_percent(60) * MaximumBlockWeight::get();
+}
+
 impl pallet_offences::Trait for Runtime {
 	type Event = Event;
 	type IdentificationTuple = pallet_session::historical::IdentificationTuple<Self>;
 	type OnOffenceHandler = Staking;
+	type WeightSoftLimit = OffencesWeightSoftLimit;
 }
 
 impl pallet_grandpa::Trait for Runtime {
@@ -429,6 +448,7 @@ impl pallet_democracy::Trait for Runtime {
 	type VetoOrigin = pallet_collective::EnsureMember<AccountId, TechnicalCollective>;
 	type CooloffPeriod = CooloffPeriod;
 	type PreimageByteDeposit = PreimageByteDeposit;
+	type OperationalPreimageOrigin = pallet_collective::EnsureMember<AccountId, CouncilCollective>;
 	type Slash = Treasury;
 	type Scheduler = Scheduler;
 	type MaxVotes = MaxVotes;
@@ -632,6 +652,7 @@ impl pallet_utility::Trait for Runtime {
 	type MultisigDepositBase = MultisigDepositBase;
 	type MultisigDepositFactor = MultisigDepositFactor;
 	type MaxSignatories = MaxSignatories;
+	type IsCallable = ();
 }
 
 parameter_types! {
