@@ -17,7 +17,6 @@ use frame_support::{
 	},
 	traits::{Currency, Imbalance, KeyOwnerProofSystem, OnUnbalanced, Randomness, LockIdentifier},
 };
-use frame_system::{EnsureRoot, EnsureOneOf};
 use frame_support::traits::{Filter, InstanceFilter};
 use codec::{Encode, Decode};
 use sp_core::{
@@ -58,8 +57,6 @@ pub use frame_system::Call as SystemCall;
 #[cfg(any(feature = "std", test))]
 pub use pallet_staking::StakerStatus;
 
-//mod constants;
-//pub use constants::{currency::*, time::*};
 
 /// Implementations of some helper traits passed into runtime modules as associated types.
 pub mod impls;
@@ -68,10 +65,6 @@ use impls::{CurrencyToVoteHandler, Author, TargetedFeeAdjustment, ConvertBalance
 /// Constant values used within the runtime.
 pub mod constants;
 use constants::{time::*, currency::*};
-
-
-/// Importing a template pallet
-pub use template;
 
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
 /// the specifics of the runtime. They can then be made to be agnostic over specific formats
@@ -135,7 +128,6 @@ impl OnUnbalanced<NegativeImbalance> for DealWithFees {
 	}
 }
 
-//const AVERAGE_ON_INITIALIZE_WEIGHT: Perbill = Perbill::from_percent(10);
 parameter_types! {
 	pub const BlockHashCount: BlockNumber = 2400;
 	/// We allow for 2 seconds of compute with a 6 second average block time.
@@ -147,8 +139,6 @@ parameter_types! {
 	pub const MaximumBlockLength: u32 = 5 * 1024 * 1024;
 	pub const Version: RuntimeVersion = VERSION;
 }
-
-//const_assert!(AvailableBlockRatio::get().deconstruct() >= AVERAGE_ON_INITIALIZE_WEIGHT.deconstruct());
 
 impl frame_system::Trait for Runtime {
 	/// The ubiquitous origin type.
@@ -268,6 +258,28 @@ impl pallet_sudo::Trait for Runtime {
 	type Call = Call;
 }
 
+impl pallet_grandpa::Trait for Runtime {
+	type Event = Event;
+	type Call = Call;
+
+	type KeyOwnerProofSystem = Historical;
+
+	type KeyOwnerProof =
+	<Self::KeyOwnerProofSystem as KeyOwnerProofSystem<(KeyTypeId, GrandpaId)>>::Proof;
+
+	type KeyOwnerIdentification = <Self::KeyOwnerProofSystem as KeyOwnerProofSystem<(
+		KeyTypeId,
+		GrandpaId,
+	)>>::IdentificationTuple;
+
+	type HandleEquivocation = pallet_grandpa::EquivocationHandler<
+		Self::KeyOwnerIdentification,
+		module_primitives::report::ReporterAppCrypto,
+		Runtime,
+		Offences,
+	>;
+}
+
 parameter_types! {
 	pub const UncleGenerations: BlockNumber = 5;
 }
@@ -343,23 +355,20 @@ impl pallet_staking::Trait for Runtime {
 	type BondingDuration = BondingDuration;
 	type SlashDeferDuration = SlashDeferDuration;
 	/// A super-majority of the council can cancel the slash.
-	type SlashCancelOrigin = EnsureOneOf<
-		AccountId,
-		EnsureRoot<AccountId>,
-		pallet_collective::EnsureProportionAtLeast<_3, _4, AccountId, CouncilCollective>
-	>;
+	type SlashCancelOrigin = pallet_collective::EnsureProportionAtLeast<_3, _4, AccountId, CouncilCollective>;
 	type SessionInterface = Self;
 	type RewardCurve = RewardCurve;
 	type NextNewSession = Session;
 	type ElectionLookahead = ElectionLookahead;
 	type Call = Call;
 	type MaxIterations = MaxIterations;
+	type MinSolutionScoreBump = MinSolutionScoreBump;
 	type MaxNominatorRewardedPerValidator = MaxNominatorRewardedPerValidator;
 	type UnsignedPriority = StakingUnsignedPriority;
 }
 
 parameter_types! {
-	pub const OffencesWeightSoftLimit: Weight = Perbill::from_percent(60) * MaximumBlockWeight::get();
+	pub OffencesWeightSoftLimit: Weight = Perbill::from_percent(60) * MaximumBlockWeight::get();
 }
 
 impl pallet_offences::Trait for Runtime {
@@ -367,28 +376,6 @@ impl pallet_offences::Trait for Runtime {
 	type IdentificationTuple = pallet_session::historical::IdentificationTuple<Self>;
 	type OnOffenceHandler = Staking;
 	type WeightSoftLimit = OffencesWeightSoftLimit;
-}
-
-impl pallet_grandpa::Trait for Runtime {
-	type Event = Event;
-	type Call = Call;
-
-	type KeyOwnerProofSystem = Historical;
-
-	type KeyOwnerProof =
-	<Self::KeyOwnerProofSystem as KeyOwnerProofSystem<(KeyTypeId, GrandpaId)>>::Proof;
-
-	type KeyOwnerIdentification = <Self::KeyOwnerProofSystem as KeyOwnerProofSystem<(
-		KeyTypeId,
-		GrandpaId,
-	)>>::IdentificationTuple;
-
-	type HandleEquivocation = pallet_grandpa::EquivocationHandler<
-		Self::KeyOwnerIdentification,
-		module_primitives::report::ReporterAppCrypto,
-		Runtime,
-		Offences,
-	>;
 }
 
 parameter_types! {
@@ -508,18 +495,13 @@ impl pallet_collective::Trait<TechnicalCollective> for Runtime {
 	type MaxProposals = TechnicalMaxProposals;
 }
 
-type EnsureRootOrHalfCouncil = EnsureOneOf<
-	AccountId,
-	EnsureRoot<AccountId>,
-	pallet_collective::EnsureProportionMoreThan<_1, _2, AccountId, CouncilCollective>
->;
 impl pallet_membership::Trait<pallet_membership::Instance1> for Runtime {
 	type Event = Event;
-	type AddOrigin = EnsureRootOrHalfCouncil;
-	type RemoveOrigin = EnsureRootOrHalfCouncil;
-	type SwapOrigin = EnsureRootOrHalfCouncil;
-	type ResetOrigin = EnsureRootOrHalfCouncil;
-	type PrimeOrigin = EnsureRootOrHalfCouncil;
+	type AddOrigin = pallet_collective::EnsureProportionMoreThan<_1, _2, AccountId, CouncilCollective>;
+	type RemoveOrigin = pallet_collective::EnsureProportionMoreThan<_1, _2, AccountId, CouncilCollective>;
+	type SwapOrigin = pallet_collective::EnsureProportionMoreThan<_1, _2, AccountId, CouncilCollective>;
+	type ResetOrigin = pallet_collective::EnsureProportionMoreThan<_1, _2, AccountId, CouncilCollective>;
+	type PrimeOrigin = pallet_collective::EnsureProportionMoreThan<_1, _2, AccountId, CouncilCollective>;
 	type MembershipInitialized = TechnicalCommittee;
 	type MembershipChanged = TechnicalCommittee;
 }
@@ -539,16 +521,8 @@ parameter_types! {
 impl pallet_treasury::Trait for Runtime {
 	type ModuleId = TreasuryModuleId;
 	type Currency = Balances;
-	type ApproveOrigin = EnsureOneOf<
-		AccountId,
-		EnsureRoot<AccountId>,
-		pallet_collective::EnsureMembers<_4, AccountId, CouncilCollective>
-	>;
-	type RejectOrigin = EnsureOneOf<
-		AccountId,
-		EnsureRoot<AccountId>,
-		pallet_collective::EnsureMembers<_2, AccountId, CouncilCollective>
-	>;
+	type ApproveOrigin = pallet_collective::EnsureMembers<_4, AccountId, CouncilCollective>;
+	type RejectOrigin = pallet_collective::EnsureMembers<_2, AccountId, CouncilCollective>;
 	type Tippers = Elections;
 	type TipCountdown = TipCountdown;
 	type TipFindersFee = TipFindersFee;
@@ -654,11 +628,11 @@ frame_support::impl_filter_stack!(IsCallable, BaseFilter, Call, is_callable);
 impl pallet_utility::Trait for Runtime {
 	type Event = Event;
 	type Call = Call;
-	type IsCallable = ();
+	type IsCallable = IsCallable;
 }
 
 parameter_types! {
-	pub const MaximumSchedulerWeight: Weight = Perbill::from_percent(80) * MaximumBlockWeight::get();
+	pub MaximumSchedulerWeight: Weight = Perbill::from_percent(80) * MaximumBlockWeight::get();
 }
 
 impl pallet_scheduler::Trait for Runtime {
@@ -686,10 +660,6 @@ impl pallet_recovery::Trait for Runtime {
 }
 
 /// Used for skylark
-///
-impl template::Trait for Runtime {
-	type Event = Event;
-}
 
 type ContentHash = [u8; 32];
 type Topic = [u8; 32];
@@ -752,6 +722,7 @@ construct_runtime!(
 		Indices: pallet_indices::{Module, Call, Storage, Config<T>, Event<T>},
 		Balances: pallet_balances::{Module, Call, Storage, Config<T>, Event<T>},
 		TransactionPayment: pallet_transaction_payment::{Module, Storage},
+		Sudo: pallet_sudo::{Module, Call, Config<T>, Storage, Event<T>},
 
 		// Substrate consensus
 		Authorship: pallet_authorship::{Module, Call, Storage, Inherent},
@@ -771,14 +742,12 @@ construct_runtime!(
 		Treasury: pallet_treasury::{Module, Call, Storage, Config, Event<T>},
 
 		// Substrate modules
-		Sudo: pallet_sudo::{Module, Call, Config<T>, Storage, Event<T>},
 		Contracts: pallet_contracts::{Module, Call, Config, Storage, Event<T>},
-		Utility: pallet_utility::{Module, Call, Storage, Event<T>},
+		Utility: pallet_utility::{Module, Call, Event},
 		Scheduler: pallet_scheduler::{Module, Call, Storage, Event<T>},
 		Recovery: pallet_recovery::{Module, Call, Storage, Event<T>},
 
 		// Skylark modules
-		TemplateModule: template::{Module, Call, Storage, Event<T>},
 		Opus: module_opus::{Module, Call, Storage, Event<T>},
 		Interaction: module_interaction::{Module, Call, Storage, Event<T>},
 		Tcx: module_tcx::{Module, Call, Storage, Event<T>},

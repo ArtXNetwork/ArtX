@@ -58,7 +58,6 @@ pallet-scheduler = { version = "2.0.0-rc3", default-features = false }
 pallet-recovery  = { version = "2.0.0-rc3", default-features = false }
 
 # skylark dependencies
-template = { package = "module-template", path = "../modules/template", default-features = false }
 module-primitives = { path = "../modules/primitives", default-features = false }
 module-opus = { path = "../modules/opus", default-features = false }
 module-interaction = { path = "../modules/interaction", default-features = false }
@@ -117,7 +116,6 @@ std = [
     "pallet-utility/std",
     "pallet-scheduler/std",
     "pallet-recovery/std",
-    "template/std",
     "module-primitives/std",
     "module-opus/std",
     "module-interaction/std",

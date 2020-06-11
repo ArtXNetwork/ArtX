@@ -3,7 +3,7 @@ members = [
     "node",
     "runtime",
     "modules/primitives",
-    "modules/template",
+    "modules/inspect",
     "modules/opus",
     "modules/interaction",
     "modules/curated-group",
