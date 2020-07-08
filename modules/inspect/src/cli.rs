@@ -3,7 +3,7 @@ use sc_cli::{ImportParams, SharedParams};
 use structopt::StructOpt;
 
 /// The `inspect` command used to print decoded chain data.
-#[derive(Debug, StructOpt, Clone)]
+#[derive(Debug, StructOpt)]
 pub struct InspectCmd {
 	#[allow(missing_docs)]
 	#[structopt(flatten)]
